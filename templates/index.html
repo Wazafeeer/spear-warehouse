@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Spear Stream Z - Python &amp; SQLite Warehouse Scanner</title>
+  
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <!-- Camera Scanner Library -->
+  <script src="{{ url_for('static', filename='vendor/html5-qrcode.min.js') }}"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo" style="background: linear-gradient(135deg, #3b82f6, #10b981);">🐍</div>
+        <div class="brand-info">
+          <h1>Spear Stream Z <span class="brand-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border-color: rgba(16, 185, 129, 0.3);">Python + SQLite</span></h1>
+          <p>Automated Product &amp; Shelf Data Entry System</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span>Flask &amp; SQLite Online</span>
+        </div>
+        <button class="btn btn-accent btn-sm" id="btn-open-mobile-modal" title="Open on Phone">
+          📱 Connect Phone
+        </button>
+        <button class="btn btn-outline btn-sm" id="btn-toggle-sound" title="Audio Feedback Beep">
+          🔔 Sound: ON
+        </button>
+      </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="scanner">
+        📷 Scanner &amp; Data Entry
+      </button>
+      <button class="tab-btn" data-tab="catalog">
+        🏷️ Product Catalog &amp; Code Generator
+      </button>
+      <button class="tab-btn" data-tab="history">
+        📋 Scan Transaction Logs
+      </button>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: SCANNER & DATA ENTRY FORM -->
+    <!-- ========================================================================= -->
+    <main class="main-grid" id="view-scanner">
+      
+      <!-- LEFT COLUMN: SCAN CONTROLS & ACTIVE VIEW -->
+      <section class="card" id="scanner-dock-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span>⚡</span> Select Input Option
+          </h2>
+          <span class="brand-badge" id="current-mode-badge">Option 1: Camera Scanner</span>
+        </div>
+
+        <div class="card-body">
+          
+          <!-- THE 4 REQUIRED OPTIONS -->
+          <div class="scan-options-container">
+            <span class="options-label">Select Scanning Method:</span>
+            <div class="scan-options-grid">
+              
+              <!-- Option 1: Camera -->
+              <div class="option-card active" data-mode="camera" id="opt-camera">
+                <div class="option-icon">📷</div>
+                <div class="option-title">Option 1</div>
+                <div class="option-subtitle">Camera Scanner</div>
+              </div>
+
+              <!-- Option 2: QR Code (External Device) -->
+              <div class="option-card" data-mode="qr_external" id="opt-qr">
+                <div class="option-icon">📱</div>
+                <div class="option-title">Option 2</div>
+                <div class="option-subtitle">QR Code (External)</div>
+              </div>
+
+              <!-- Option 3: Barcode (External Device) -->
+              <div class="option-card" data-mode="barcode_external" id="opt-barcode">
+                <div class="option-icon">🏷️</div>
+                <div class="option-title">Option 3</div>
+                <div class="option-subtitle">Barcode (External)</div>
+              </div>
+
+              <!-- Option 4: RFID -->
+              <div class="option-card" data-mode="rfid" id="opt-rfid">
+                <div class="option-icon">📡</div>
+                <div class="option-title">Option 4</div>
+                <div class="option-subtitle">RFID Reader</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- DYNAMIC SCAN DISPLAY AREA -->
+          <div class="scan-display-area" id="scan-container">
+            
+            <!-- OPTION 1: CAMERA SCANNER VIEW -->
+            <div id="camera-scanner-view">
+              <div class="scan-laser-line"></div>
+              <div id="camera-reader"></div>
+              
+              <div class="camera-controls">
+                <select id="camera-select" class="camera-select">
+                  <option value="">Detecting Cameras...</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="toggle-camera-btn">
+                  Start Camera
+                </button>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center;" id="camera-status-text">
+                Point camera at any QR Code or 1D Barcode
+              </div>
+            </div>
+
+            <!-- OPTION 2: EXTERNAL QR SCANNER VIEW -->
+            <div id="external-qr-view" class="external-device-view" style="display: none;">
+              <div class="radar-scanner-icon">📱</div>
+              <div class="device-status-badge">
+                <span class="pulse-dot"></span>
+                <span>Listening for External 2D / QR Scanner</span>
+              </div>
+              <p class="device-instruction">
+                Connect your Gobbler 2D or wireless barcode gun. Aim at any QR code and pull the trigger.
+              </p>
+              <div class="wedge-input-group">
+                <input type="text" id="qr-wedge-input" class="wedge-input" placeholder="Scanner Input Wedge (Auto-detects)..." autocomplete="off">
+                <button class="btn btn-outline btn-sm" id="btn-sim-qr">
+                  🧪 Simulate External QR Scan
+                </button>
+              </div>
+            </div>
+
+            <!-- OPTION 3: EXTERNAL BARCODE SCANNER VIEW -->
+            <div id="external-barcode-view" class="external-device-view" style="display: none;">
+              <div class="radar-scanner-icon">🏷️</div>
+              <div class="device-status-badge">
+                <span class="pulse-dot"></span>
+                <span>Listening for External Barcode Scanner</span>
+              </div>
+              <p class="device-instruction">
+                Connect your Gobbler 2D or 1D scanner. Aim at any barcode label to auto-fill.
+              </p>
+              <div class="wedge-input-group">
+                <input type="text" id="barcode-wedge-input" class="wedge-input" placeholder="Scanner Input Wedge (Auto-detects)..." autocomplete="off">
+                <button class="btn btn-outline btn-sm" id="btn-sim-barcode">
+                  🧪 Simulate External Barcode Scan
+                </button>
+              </div>
+            </div>
+
+            <!-- OPTION 4: EXTERNAL RFID VIEW -->
+            <div id="external-rfid-view" class="external-device-view" style="display: none;">
+              <div class="radar-scanner-icon">📡</div>
+              <div class="device-status-badge">
+                <span class="pulse-dot"></span>
+                <span>Listening for RFID Reader / NFC Tap</span>
+              </div>
+              <p class="device-instruction">
+                Swipe your RFID tag/badge over your USB RFID reader or tap against your mobile phone antenna.
+              </p>
+              <div class="wedge-input-group">
+                <input type="text" id="rfid-wedge-input" class="wedge-input" placeholder="RFID Reader Wedge (Auto-detects)..." autocomplete="off">
+                <button class="btn btn-outline btn-sm" id="btn-sim-rfid">
+                  🧪 Simulate RFID Tap
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); text-align: center;">
+            💡 Powered by Python Backend. Data persists in <strong>warehouse.db (SQLite)</strong>.
+          </div>
+
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: AUTO-POPULATED HTML FORM -->
+      <section class="card" id="product-form-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span>📝</span> Warehouse Product Data Form
+          </h2>
+        </div>
+
+        <div class="card-body">
+          
+          <!-- SCAN MATCH STATUS BANNER -->
+          <div class="matched-banner" id="scan-match-banner" style="margin-bottom: 1.25rem;">
+            <div class="banner-content" id="banner-content-text">
+              <em>Ready for scan. Select an option on the left or scan any code.</em>
+            </div>
+          </div>
+
+          <!-- THE PRODUCT DATA FORM -->
+          <form id="scanned-product-form" class="product-form">
+            
+            <div class="form-grid">
+              
+              <!-- Scan Source / Input Mode (Auto-filled) -->
+              <div class="form-group">
+                <label class="form-label" for="form-scan-source">Input Mode / Source</label>
+                <input type="text" id="form-scan-source" class="form-control" readonly placeholder="Waiting for scan...">
+              </div>
+
+              <!-- Timestamp (Auto-filled) -->
+              <div class="form-group">
+                <label class="form-label" for="form-timestamp">Scan Timestamp</label>
+                <input type="text" id="form-timestamp" class="form-control" readonly>
+              </div>
+
+              <!-- Product SKU / Barcode ID (Scanned) -->
+              <div class="form-group">
+                <label class="form-label" for="form-sku">
+                  <span>Product Code / SKU</span>
+                  <span class="required">*</span>
+                </label>
+                <input type="text" id="form-sku" class="form-control" required placeholder="e.g. SKU-DRIL-8801">
+              </div>
+
+              <!-- Product Name -->
+              <div class="form-group">
+                <label class="form-label" for="form-name">
+                  <span>Product Name</span>
+                  <span class="required">*</span>
+                </label>
+                <input type="text" id="form-name" class="form-control" required placeholder="e.g. Industrial Cordless Drill">
+              </div>
+
+              <!-- Shelf Location -->
+              <div class="form-group">
+                <label class="form-label" for="form-shelf">Warehouse Shelf Location</label>
+                <input type="text" id="form-shelf" class="form-control" placeholder="e.g. Aisle 3 - Bay B - Shelf 02">
+              </div>
+
+              <!-- Category -->
+              <div class="form-group">
+                <label class="form-label" for="form-category">Product Category</label>
+                <input type="text" id="form-category" class="form-control" placeholder="e.g. Power Tools">
+              </div>
+
+              <!-- Unit Price -->
+              <div class="form-group">
+                <label class="form-label" for="form-price">Unit Price ($)</label>
+                <input type="number" step="0.01" id="form-price" class="form-control" placeholder="0.00">
+              </div>
+
+              <!-- Current Stock Quantity -->
+              <div class="form-group">
+                <label class="form-label" for="form-stock">Current Stock In Warehouse</label>
+                <input type="number" id="form-stock" class="form-control" placeholder="0">
+              </div>
+
+              <!-- RFID UID -->
+              <div class="form-group col-span-2">
+                <label class="form-label" for="form-rfid">RFID Tag UID</label>
+                <input type="text" id="form-rfid" class="form-control" placeholder="e.g. RFID-E200-9901-A1">
+              </div>
+
+              <!-- Transaction Action -->
+              <div class="form-group">
+                <label class="form-label" for="form-action-type">Transaction Action</label>
+                <select id="form-action-type" class="form-control">
+                  <option value="Stock In / Receive">📥 Stock In / Receive</option>
+                  <option value="Stock Out / Dispatch">📤 Stock Out / Dispatch</option>
+                  <option value="Inventory Audit / Check" selected>🔍 Inventory Audit / Verification</option>
+                </select>
+              </div>
+
+              <!-- Quantity for this scan -->
+              <div class="form-group">
+                <label class="form-label" for="form-quantity-action">Transaction Quantity</label>
+                <input type="number" id="form-quantity-action" class="form-control" value="1" min="1">
+              </div>
+
+              <!-- Operator / Worker Name -->
+              <div class="form-group">
+                <label class="form-label" for="form-operator">Operator / Worker ID</label>
+                <input type="text" id="form-operator" class="form-control" value="Worker-01">
+              </div>
+
+              <!-- Notes / Description -->
+              <div class="form-group col-span-2">
+                <label class="form-label" for="form-notes">Condition / Notes</label>
+                <textarea id="form-notes" class="form-control" placeholder="Condition check, packaging intact, shelf verified..."></textarea>
+              </div>
+
+            </div>
+
+            <!-- FORM BUTTONS -->
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" style="flex: 1;">
+                💾 Save Entry to SQLite
+              </button>
+              <button type="button" class="btn btn-outline" id="btn-clear-form">
+                🔄 Clear Form
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: PRODUCT CATALOG (PYTHON-GENERATED QR & BARCODES) -->
+    <!-- ========================================================================= -->
+    <section class="catalog-section" id="view-catalog" style="display: none;">
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="brand-info">
+            <h2 class="card-title">🏷️ Pre-Fed Products &amp; Generated Labels (Python)</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+              Every product is saved in SQLite. Barcodes and QR Codes are rendered dynamically by Python on the server.
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-sm" id="btn-open-new-product-modal">
+              ➕ Pre-Feed New Product
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="product-card-list" id="catalog-cards-container">
+            <!-- Dynamically populated from SQLite -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: SCAN TRANSACTION LOGS & HISTORY (SQLITE) -->
+    <!-- ========================================================================= -->
+    <section class="catalog-section" id="view-history" style="display: none;">
+      
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📋 SQLite Transaction Log</h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-outline btn-sm" id="btn-export-history">
+              📥 Export to CSV (Python)
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Scan Method</th>
+                  <th>SKU / Code</th>
+                  <th>Product Name</th>
+                  <th>Action</th>
+                  <th>Qty</th>
+                  <th>Shelf Location</th>
+                  <th>Operator</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- Dynamically populated from SQLite -->
+              </tbody>
+            </table>
+          </div>
+          <div id="history-empty-state" style="text-align: center; padding: 2rem; color: var(--text-muted); display: none;">
+            No transactions recorded yet in SQLite database.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- MODAL: PRE-FEED PRODUCT -->
+  <div class="modal-overlay" id="new-product-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="card-title">➕ Pre-Feed Product (SQLite)</h3>
+        <button class="btn btn-outline btn-sm" id="btn-close-product-modal" type="button">✕</button>
+      </div>
+
+      <form id="new-product-form">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="new-sku">Product SKU / Code <span class="required">*</span></label>
+              <input type="text" id="new-sku" class="form-control" required placeholder="e.g. SKU-TOOL-5012">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-name">Product Name <span class="required">*</span></label>
+              <input type="text" id="new-name" class="form-control" required placeholder="e.g. Torque Wrench 1/2-Inch">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-category">Category</label>
+              <input type="text" id="new-category" class="form-control" placeholder="e.g. Hand Tools">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-shelf">Warehouse Shelf Location</label>
+              <input type="text" id="new-shelf" class="form-control" placeholder="e.g. Aisle 2 - Shelf C3">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-price">Unit Price ($)</label>
+              <input type="number" step="0.01" id="new-price" class="form-control" placeholder="79.99">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-stock">Initial Stock Quantity</label>
+              <input type="number" id="new-stock" class="form-control" placeholder="30">
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="form-label" for="new-rfid">RFID Tag UID (Optional)</label>
+              <input type="text" id="new-rfid" class="form-control" placeholder="e.g. RFID-E200-5012-F5">
+            </div>
+
+            <div class="form-group col-span-2">
+              <label class="form-label" for="new-desc">Product Description</label>
+              <textarea id="new-desc" class="form-control" placeholder="Specifications, warranty, handling instructions..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">
+            ✨ Generate Python Codes &amp; Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PRINT / ENLARGE CODE LABEL -->
+  <div class="modal-overlay" id="label-print-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="card-title">🖨️ Product Label &amp; Codes (Python)</h3>
+        <button class="btn btn-outline btn-sm" id="btn-close-print-modal" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="printable-area">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-execute-print">
+          🖨️ Print Label / Sticker
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MOBILE CONNECT (SCAN WITH PHONE) -->
+  <div class="modal-overlay" id="mobile-connect-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="card-title">📱 Open Python App on Your Phone</h3>
+        <button class="btn btn-outline btn-sm" id="btn-close-mobile-modal" type="button">✕</button>
+      </div>
+
+      <div class="modal-body" style="text-align: center; display: flex; flex-direction: column; gap: 1rem;">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+          Point your phone camera at the QR code below or open the link directly in Chrome / Safari.
+        </p>
+
+        <!-- QR Code to scan with phone -->
+        <div style="background: #ffffff; padding: 1rem; border-radius: 8px; display: inline-flex; justify-content: center; align-items: center; margin: 0 auto; min-width: 170px; min-height: 170px;">
+          <div id="mobile-qr-code-box"></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; text-align: left; background: var(--bg-primary); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color);">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">
+            Mobile HTTPS Link (Works anywhere, Wi-Fi or 4G/5G):
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="mobile-url-input" class="form-control" readonly style="font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--accent-cyan);" value="https://bass-population-journalism-bolt.trycloudflare.com">
+            <button class="btn btn-outline btn-sm" id="btn-copy-mobile-url" type="button">📋 Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}"></script>
+  <!-- Python App Client Script -->
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+</body>
+</html>
