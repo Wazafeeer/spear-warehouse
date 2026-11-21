@@ -1,0 +1,21 @@
+{
+  "name": "warehouse-unit-loading",
+  "version": "2.0.0",
+  "description": "Receive Materials & Store in Warehouse - Unit Loading & Barcode Scanner System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "warehouse",
+    "barcode-scanner",
+    "unit-loading",
+    "rfid",
+    "html5-qrcode"
+  ],
+  "author": "Warehouse Solutions",
+  "license": "ISC",
+  "dependencies": {
+    "selfsigned": "^5.5.0"
+  }
+}

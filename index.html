@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warehouse Unit Loading - External Scanner System</title>
+
+  <!-- Modern Enterprise Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- TOP APP BAR -->
+  <header class="wms-header">
+    <div class="header-left">
+      <div class="app-brand">
+        <span class="brand-badge">WMS</span>
+        <div class="brand-text">
+          <h1>WareHouse Unit Loading</h1>
+          <span class="sub-text">Inbound Receiving &amp; Stacking System</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- METADATA & STATUS -->
+    <div class="header-center">
+      <div class="meta-tag"><span class="label">Step:</span> <strong>0.1</strong></div>
+      <div class="meta-separator">|</div>
+      <div class="meta-tag"><span class="label">Form ID:</span> <strong>13100200047</strong></div>
+      <div class="meta-separator">·</div>
+      <div class="meta-tag"><span class="label">Template ID:</span> <strong>3313930018</strong></div>
+    </div>
+
+    <div class="header-right">
+      <div class="scanner-hardware-status" id="hardwareStatusIndicator">
+        <span class="status-dot pulse"></span>
+        <span class="status-label">External Scanner: <strong id="scannerStateText">Ready</strong></span>
+      </div>
+      <button type="button" class="btn-step-done" id="btn-step-completed">
+        <span class="icon">📋</span> Step Completed
+      </button>
+      <button type="button" class="btn-window-close" id="btn-close-app" title="Close Window">✕</button>
+    </div>
+  </header>
+
+  <!-- MAIN INTERFACE -->
+  <main class="wms-main-container">
+    
+    <!-- LEFT WORKFLOW STEPPER -->
+    <aside class="workflow-sidebar">
+      <div class="stepper-title">Workflow Steps</div>
+      <div class="stepper-track">
+        <div class="step-item done" title="Step 1: Gate Entry">
+          <div class="step-circle">✓</div>
+          <span class="step-name">Gate Entry</span>
+        </div>
+        <div class="step-item done" title="Step 2: Unloading Bay">
+          <div class="step-circle">✓</div>
+          <span class="step-name">Unload Bay</span>
+        </div>
+        <div class="step-item done" title="Step 3: Quality Check">
+          <div class="step-circle">✓</div>
+          <span class="step-name">Quality Check</span>
+        </div>
+        <div class="step-item done" title="Step 4: Sorting">
+          <div class="step-circle">✓</div>
+          <span class="step-name">Sorting</span>
+        </div>
+        <div class="step-item current" title="Step 5: Unit Loading (Active)">
+          <div class="step-circle current-circle">06</div>
+          <span class="step-name">Unit Loading</span>
+        </div>
+      </div>
+
+      <div class="sidebar-nav-buttons">
+        <button type="button" class="btn-step-nav" id="btn-prev-step">← Previous</button>
+        <button type="button" class="btn-step-nav" id="btn-next-step">Next →</button>
+      </div>
+    </aside>
+
+    <!-- RIGHT: MAIN UNIT LOADING FORM CARD -->
+    <section class="wms-content-card">
+
+      <!-- CARD HEADER & SCANNER NOTICE -->
+      <div class="card-top-bar">
+        <div class="bracket-title-box">
+          <span class="bracket-symbol">[</span>
+          <h2 class="form-title">WareHouse Unit Loading</h2>
+          <span class="bracket-symbol">]</span>
+        </div>
+
+        <div class="external-scanner-alert" id="scannerAlertBanner">
+          <div class="scanner-wave-icon">
+            <span class="wave wave1"></span>
+            <span class="wave wave2"></span>
+            <span class="wave wave3"></span>
+          </div>
+          <span id="scannerBannerMessage">External Barcode Scanner Gun Ready. Pull trigger to scan items.</span>
+        </div>
+      </div>
+
+      <!-- THE 4x4 FORM GRID -->
+      <form id="unitLoadingForm" class="unit-loading-form" onsubmit="return false;">
+
+        <!-- ================= ROW 1 ================= -->
+        <div class="form-grid-row">
+          <!-- Col 1: Readonly ID Field -->
+          <div class="form-field-group col-id-highlight">
+            <label for="unitLoadingId">Unit Loading ID</label>
+            <input type="text" id="unitLoadingId" class="wms-input id-badge-input" value="3100020048" readonly>
+          </div>
+
+          <!-- Col 2: Sequence No -->
+          <div class="form-field-group">
+            <label for="sequenceNo">Sequence No</label>
+            <input type="text" id="sequenceNo" class="wms-input" placeholder="Enter Sequence No">
+          </div>
+
+          <!-- Col 3: Warehouse Status -->
+          <div class="form-field-group">
+            <label for="warehouseStatus">Warehouse Status <span class="req">*</span></label>
+            <input type="text" id="warehouseStatus" class="wms-input" placeholder="Enter Warehouse Status">
+          </div>
+
+          <!-- Col 4: Load / Unload Ind -->
+          <div class="form-field-group">
+            <label for="loadUnloadInd">Load / Unload Ind <span class="req">*</span></label>
+            <div class="select-container">
+              <select id="loadUnloadInd" class="wms-select">
+                <option value="">Select An Option</option>
+                <option value="Load">Load</option>
+                <option value="Unload">Unload</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= ROW 2 ================= -->
+        <div class="form-grid-row">
+          <!-- Col 1: Product Category ID -->
+          <div class="form-field-group">
+            <label for="productCategoryId">Product Category ID</label>
+            <input type="text" id="productCategoryId" class="wms-input" placeholder="Product Category ID">
+          </div>
+
+          <!-- Col 2: Product -->
+          <div class="form-field-group">
+            <label for="product">Product <span class="req">*</span></label>
+            <div class="select-container">
+              <select id="product" class="wms-select">
+                <option value="">Select An Option</option>
+                <option value="High-Grade Industrial Steel Sheets">High-Grade Industrial Steel Sheets</option>
+                <option value="Copper Electrical Coils">Copper Electrical Coils</option>
+                <option value="Reinforced Concrete Beams">Reinforced Concrete Beams</option>
+                <option value="Industrial Valve Assembly">Industrial Valve Assembly</option>
+                <option value="Automotive Wiring Harness">Automotive Wiring Harness</option>
+                <option value="Polymer Resin Pellets">Polymer Resin Pellets</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Col 3: Vendor Product -->
+          <div class="form-field-group">
+            <label for="vendorProduct">Vendor Product <span class="req">*</span></label>
+            <div class="select-container">
+              <select id="vendorProduct" class="wms-select">
+                <option value="">Select An Option</option>
+                <option value="VP-STEEL-9901">VP-STEEL-9901</option>
+                <option value="VP-COPPER-3302">VP-COPPER-3302</option>
+                <option value="VP-BEAM-7714">VP-BEAM-7714</option>
+                <option value="VP-VALVE-5520">VP-VALVE-5520</option>
+                <option value="VP-HARNESS-109">VP-HARNESS-109</option>
+                <option value="VP-RESIN-883">VP-RESIN-883</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Col 4: Raw Material -->
+          <div class="form-field-group">
+            <label for="rawMaterial">Raw Material <span class="req">*</span></label>
+            <div class="select-container">
+              <select id="rawMaterial" class="wms-select">
+                <option value="">Select An Option</option>
+                <option value="Alloy Steel Grade-A">Alloy Steel Grade-A</option>
+                <option value="Electrolytic Copper">Electrolytic Copper</option>
+                <option value="Pre-Stressed Concrete">Pre-Stressed Concrete</option>
+                <option value="Cast Iron Alloy">Cast Iron Alloy</option>
+                <option value="Flame Retardant PVC">Flame Retardant PVC</option>
+                <option value="Virgin Polypropylene">Virgin Polypropylene</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= ROW 3 ================= -->
+        <div class="form-grid-row">
+          <!-- Col 1: Transit No -->
+          <div class="form-field-group">
+            <label for="transitNo">Transit No</label>
+            <input type="text" id="transitNo" class="wms-input" placeholder="Enter Transit No">
+          </div>
+
+          <!-- Col 2: Product RFID -->
+          <div class="form-field-group rfid-field-highlight">
+            <label for="productRfid">Product RFID <span class="badge-auto">Auto-Linked</span></label>
+            <input type="text" id="productRfid" class="wms-input" placeholder="Product RFID" value="8901234567890">
+          </div>
+
+          <!-- Col 3: Volume Units Loaded -->
+          <div class="form-field-group">
+            <label for="volumeUnitsLoaded">Volume Units Loaded</label>
+            <input type="text" id="volumeUnitsLoaded" class="wms-input" placeholder="Enter Volume Units Loaded">
+          </div>
+
+          <!-- Col 4: Volume Unit -->
+          <div class="form-field-group">
+            <label for="volumeUnit">Volume Unit</label>
+            <div class="select-container">
+              <select id="volumeUnit" class="wms-select">
+                <option value="Kilogram" selected>Kilogram</option>
+                <option value="Liters">Liters</option>
+                <option value="Cubic Meters">Cubic Meters</option>
+                <option value="Boxes">Boxes</option>
+                <option value="Pallets">Pallets</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= ROW 4 ================= -->
+        <div class="form-grid-row">
+          <!-- Col 1: Weight Units Loaded -->
+          <div class="form-field-group">
+            <label for="weightUnitsLoaded">Weight Units Loaded</label>
+            <input type="text" id="weightUnitsLoaded" class="wms-input" placeholder="Enter Weight Units Loaded">
+          </div>
+
+          <!-- Col 2: Weight Unit -->
+          <div class="form-field-group">
+            <label for="weightUnit">Weight Unit</label>
+            <div class="select-container">
+              <select id="weightUnit" class="wms-select">
+                <option value="">Select An Option</option>
+                <option value="Kilogram">Kilogram</option>
+                <option value="Gram">Gram</option>
+                <option value="Metric Ton">Metric Ton</option>
+                <option value="Pound">Pound</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Col 3: Is Active (Toggle Yes / No) -->
+          <div class="form-field-group">
+            <label>Is Active <span class="req">*</span></label>
+            <div class="toggle-pill-group">
+              <button type="button" class="btn-toggle-pill active" id="btnActiveYes">Yes</button>
+              <button type="button" class="btn-toggle-pill" id="btnActiveNo">No</button>
+            </div>
+          </div>
+
+          <!-- Col 4: Scan Barcode (EXTERNAL SCANNER INTEGRATION ZONE) -->
+          <div class="form-field-group scan-action-container" id="scanBarcodeBox">
+            <div class="label-row">
+              <label for="scanBarcode">Scan Barcode</label>
+              <span class="scanner-live-badge" id="liveBadge">● EXTERNAL</span>
+            </div>
+            <div class="barcode-input-action-wrap">
+              <input type="text" id="scanBarcode" class="wms-input barcode-active-input" value="8901234567890" placeholder="Aim gun and scan barcode">
+              <!-- BUTTON CALLED SCAN WITH THAT EMOJI -->
+              <button type="button" class="btn-scan-trigger" id="btnScanTrigger" title="Activate External Scanner Receiver">
+                <span class="scan-emoji">📷</span> Scan
+              </button>
+            </div>
+            <span class="subtext-red">Populates Product RFID above</span>
+          </div>
+        </div>
+
+        <!-- ================= ROW 5: ACTION BUTTONS ================= -->
+        <div class="form-bottom-actions">
+          <button type="button" class="btn-wms btn-submit" id="btnSubmitForm">
+            <span class="icon">📥</span> Submit
+          </button>
+          <button type="button" class="btn-wms btn-reset" id="btnResetForm">
+            <span class="icon">🔄</span> Reset
+          </button>
+          <button type="button" class="btn-wms btn-cancel" id="btnCancelForm">
+            <span class="icon">✕</span> Cancel
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- EXTERNAL SCANNER RECEIVER DIALOG (NO CAMERA! ONLY EXTERNAL SCANNER) -->
+  <!-- ========================================================================= -->
+  <div class="external-scanner-modal-backdrop" id="externalScannerModal" aria-hidden="true">
+    <div class="scanner-dialog-box" role="dialog" aria-modal="true">
+      
+      <!-- MODAL HEADER -->
+      <div class="dialog-header">
+        <div class="dialog-title-group">
+          <span class="scanner-gun-icon">🔫</span>
+          <h3>External Scanner Receiver</h3>
+        </div>
+        <button type="button" class="btn-close-dialog" id="btnCloseScannerModal">✕</button>
+      </div>
+
+      <!-- DIALOG BODY -->
+      <div class="dialog-body">
+        
+        <!-- RADAR / HARDWARE SCANNER PULSE -->
+        <div class="scanner-radar-visual">
+          <div class="radar-circle pulse-1"></div>
+          <div class="radar-circle pulse-2"></div>
+          <div class="radar-gun-art">
+            <svg viewBox="0 0 80 80" width="70" height="70">
+              <!-- Scanner Gun Silhouette -->
+              <path d="M 15,20 L 60,20 Q 68,20 68,28 L 68,40 Q 68,48 60,48 L 40,48 L 36,65 Q 35,70 30,70 L 22,70 Q 18,70 19,65 L 24,48 L 15,48 Q 10,48 10,40 L 10,28 Q 10,20 15,20 Z" fill="#1e293b"/>
+              <rect x="66" y="24" width="4" height="20" rx="2" fill="#0284c7"/>
+              <line x1="68" y1="26" x2="68" y2="42" stroke="#38bdf8" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="scanner-laser-indicator"></div>
+        </div>
+
+        <!-- STATUS MESSAGE -->
+        <div class="scanner-listening-prompt">
+          <h4>LISTENING FOR EXTERNAL SCANNER...</h4>
+          <p>Aim your physical handheld USB or Bluetooth scanner gun at the barcode and <strong>pull the trigger</strong>.</p>
+          <div class="listening-tag">Hardware Keystroke Mode Active</div>
+        </div>
+
+        <!-- TEST BUTTONS (FOR QUICK SIMULATION OR VERIFICATION) -->
+        <div class="manual-test-tray">
+          <div class="tray-label">Or click a sample barcode to simulate trigger pull:</div>
+          <div class="tray-buttons-grid">
+            <button type="button" class="btn-simulate-code" data-code="8901234567890">
+              ⚡ 8901234567890 (Industrial Steel)
+            </button>
+            <button type="button" class="btn-simulate-code" data-code="8901030012345">
+              ⚡ 8901030012345 (Copper Coils)
+            </button>
+            <button type="button" class="btn-simulate-code" data-code="8902500418921">
+              ⚡ 8902500418921 (Concrete Beams)
+            </button>
+            <button type="button" class="btn-simulate-code" data-code="WH-VALVE-5520">
+              ⚡ WH-VALVE-5520 (Valve Assembly)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MODAL FOOTER -->
+      <div class="dialog-footer">
+        <button type="button" class="btn-dialog-done" id="btnDismissScannerModal">Close &amp; Keep Listening</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-hub" id="toastHub"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
